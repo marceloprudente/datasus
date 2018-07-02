@@ -1,0 +1,75 @@
+
+
+# SIAB
+library(tidyverse); library(rvest); library(data.table); library(urltools)
+
+# url do site
+url = "http://tabnet.datasus.gov.br/cgi/deftohtm.exe?siab/cnv/SIABSBR.DEF"
+
+## Variáveis
+variaveis = data.frame(id = pagina %>% rvest::html_nodes("#I option") %>% rvest::html_text() %>% trimws(),
+                       value = pagina %>% rvest::html_nodes("#I option") %>% rvest::html_attr("value"))
+
+variaveis$value <- iconv(variaveis$value, "UTF-8", "latin1")
+
+
+
+## Períodos
+periodos.df <- data.frame(id = pagina %>% rvest::html_nodes("#A option") %>% rvest::html_text() %>% readr::parse_number(),
+                          value = pagina %>% rvest::html_nodes("#A option") %>% rvest::html_attr("value"))
+
+
+# linha base
+base = "Linha=Munic%edpio&Coluna=--N%e3o-Ativa--"
+
+# formato base
+formato = "&formato=table&mostre=Mostra"
+
+
+## formulario siab
+
+form_conteudo <- url_encode(variaveis$value)
+form_conteudo <- paste0("&Incremento=", form_conteudo)
+form_conteudo <- paste0(form_conteudo, collapse = "")
+
+# formulario periodo
+
+
+periodos.df$form <- paste0(base, form_conteudo, "&Arquivos=", periodos.df$value, formato)
+
+lista = list()
+
+for(i in 1:2){
+  
+  site = "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?siab/cnv/SIABSBR.DEF"
+  site <- httr::POST(url = "http://tabnet.datasus.gov.br/cgi/tabcgi.exe?siab/cnv/SIABSBR.DEF",
+                     body = periodos.df$form[i])
+  
+  tabdados <- httr::content(site, encoding = "Latin1") %>%
+    rvest::html_nodes(".tabdados tbody td") %>%
+    rvest::html_text() %>%
+    trimws()
+  
+  col_tabdados <- httr::content(site, encoding = "Latin1") %>%
+    rvest::html_nodes("th") %>%
+    rvest::html_text() %>%
+    trimws()
+  
+  f1 <- function(x) x <- gsub("\\.", "", x)
+  f2 <- function(x) x <- as.numeric(as.character(x))
+  
+  tabela_final <- as.data.frame(matrix(data = tabdados, nrow = length(tabdados)/length(col_tabdados),
+                                       ncol = length(col_tabdados), byrow = TRUE))
+  
+  names(tabela_final) <- col_tabdados
+  
+  
+  tabela_final$ano <- paste0(substr(lista$b[i], 4, 7), "01")
+  # parse number nas colunas
+  
+  tabela_final[-1] <- lapply(tabela_final[-1], f1)
+  tabela_final[-1] <- suppressWarnings(lapply(tabela_final[-1], f2))
+  
+  lista[[i]] <- tabela_final
+  
+}
