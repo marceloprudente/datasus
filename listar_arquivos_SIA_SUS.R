@@ -3,8 +3,15 @@ library(magrittr); library(tidyverse)
 
 listar_arquivos_siasus <- function(TIPO, ANO, MES, ...){
   
-  MES <- if(nchar(MES) == 1){paste0("0", MES)}else{MES}
+  # testes de consistencia
+  MES <- if(nchar(MES) == 1){paste0("0", MES)
+  }else if(MES >2){
+    warning("Mês especificado incorretamente")
+    break
+  } else{MES}
+    
   ANO <- if(nchar(ANO)== 4){substr(ANO, 3, 4)}else(ANO)
+  
   TIPO<- if(!TIPO %in% c("PA", "AD", "AM", "AN", "AQ", "AR", "AB", "AC", "AT", "PS", "BI" )){
     warning("Tipo de Arquivo não reconhecido. Verificar Informe Técnico SIASUS no link: ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Doc/Informe_Tecnico_SIASUS_2019_07.pdf ")
     break
