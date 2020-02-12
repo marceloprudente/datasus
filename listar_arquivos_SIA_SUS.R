@@ -32,7 +32,7 @@ listar_arquivos_siasus <- function(TIPO, ANO, MES, ...){
                               "Boletim Individualizado"))
         
   # listar arquivos no ftp do SIHSUS
-  caminho <- "ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/"
+  caminho <<- "ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/"
   
   # captar informações da página
   result <- RCurl::getURL(caminho)
