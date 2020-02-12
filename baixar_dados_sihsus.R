@@ -26,7 +26,7 @@ path <- getwd()
 setwd(paste0(path, "/sihsus/rd/"))
 
 # Loop para baixar dados
-for(i in 1:nrow(arquivos){
+for(i in 1:nrow(arquivos)){
   
   tryCatch(download.file(paste0(caminho, arquivos_rd[i, 1]), 
               destfile = paste0("C:/reg_saude/sihsus/rd/", arquivos_rd[i,1]), 
